@@ -126,11 +126,41 @@ impl<S: NdArray> NdArray for Vec<S> {
 }
 
 impl Device {
-    /// Target the host's CUDA device given its Device number
+    /// Target the host's CUDA device given the device's `ordinal` index.
+    ///
+    /// ## Linux example
+    /// If using linux, one can grab the device ID
+    /// following [this example](https://askubuntu.com/a/392944):
+    ///  
+    /// ```shell
+    /// lspci | grep ' VGA ' | cut -d" " -f 1 | xargs -i lspci -v -s {}
+    /// ```
+    /// ```shell
+    /// 03:00.0 VGA compatible controller: NVIDIA Corporation G98 [Quadro NVS 295] (rev a1) (prog-if 00 [VGA controller])
+    /// Subsystem: NVIDIA Corporation Device 062e
+    /// Flags: bus master, fast devsel, latency 0, IRQ 24
+    /// Memory at f6000000 (32-bit, non-prefetchable) [size=16M]
+    /// Memory at ec000000 (64-bit, prefetchable) [size=64M]
+    /// Memory at f4000000 (64-bit, non-prefetchable) [size=32M]
+    /// I/O ports at dc80 [size=128]
+    /// [virtual] Expansion ROM at f7e00000 [disabled] [size=128K]
+    /// Capabilities: <access denied>
+    /// Kernel driver in use: nvidia
+    /// ```
+    ///
+    /// Use this index to instantiate the device
+    ///  
+    /// ```notest
+    /// Device::new_cuda(3)
+    /// ```
     pub fn new_cuda(ordinal: usize) -> Result<Self> {
         Ok(Self::Cuda(crate::CudaDevice::new(ordinal)?))
     }
 
+    /// Target the host's Metal device given the device's `ordinal` index.
+    ///
+    /// The Metal graphics API is typically only utilized
+    /// by [Apple devices](https://developer.apple.com/metal/).
     pub fn new_metal(ordinal: usize) -> Result<Self> {
         Ok(Self::Metal(crate::MetalDevice::new(ordinal)?))
     }
@@ -143,6 +173,7 @@ impl Device {
         }
     }
 
+    /// Returns true if this device is the exact target of the other device.
     pub fn same_device(&self, rhs: &Self) -> bool {
         match (self, rhs) {
             (Self::Cpu, Self::Cpu) => true,
