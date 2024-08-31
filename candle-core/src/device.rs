@@ -126,6 +126,7 @@ impl<S: NdArray> NdArray for Vec<S> {
 }
 
 impl Device {
+    /// Target the host's CUDA device given its Device number
     pub fn new_cuda(ordinal: usize) -> Result<Self> {
         Ok(Self::Cuda(crate::CudaDevice::new(ordinal)?))
     }
@@ -187,6 +188,7 @@ impl Device {
         }
     }
 
+    /// Will return a [`CUDA device`](Device::Cuda), but falls back to a [`CPU`](Device::Cpu) if not available
     pub fn cuda_if_available(ordinal: usize) -> Result<Self> {
         if crate::utils::cuda_is_available() {
             Self::new_cuda(ordinal)
